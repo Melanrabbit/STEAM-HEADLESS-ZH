@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Fcitx 5
+Comment=中文输入法
+Exec=/usr/bin/fcitx5 -d
+Icon=fcitx
+Type=Application
+X-KDE-autostart-after=panel
