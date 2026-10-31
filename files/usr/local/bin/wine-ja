@@ -1,0 +1,21 @@
+#!/bin/sh
+# 用「日文区域 + 独立 prefix」跑 Windows 程序（galgame 常用）。
+#
+# 用法：
+#   wine-ja /mnt/games/GameLibrary/RiddleJoker/RiddleJoker.exe
+#   wine-ja --version
+#
+# 说明：
+# - LANG/LC_ALL 设成 ja_JP.UTF-8，日文原版游戏才不会乱码或拒绝启动
+# - WINEPREFIX 默认 ~/.wine-ja，和默认 ~/.wine 分开，避免互相污染
+# - mscoree/mshtml 关掉，避免 wine 弹「安装 wine-mono / wine-gecko」对话框
+# - 首次运行会在 prefix 里初始化（约十几秒），之后启动很快
+
+export LANG=ja_JP.UTF-8
+export LC_ALL=ja_JP.UTF-8
+export LANGUAGE=ja_JP
+export WINEPREFIX="${WINEPREFIX:-$HOME/.wine-ja}"
+export WINEDLLOVERRIDES="mscoree,mshtml="
+export WINEDEBUG=-all
+
+exec /usr/bin/wine "$@"

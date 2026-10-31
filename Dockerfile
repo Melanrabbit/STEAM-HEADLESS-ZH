@@ -8,17 +8,22 @@
 # 词库来源：Fedora 44 官方仓库里的 plasma-* / kf6-* / kde 应用包，见 zh-locale/。
 FROM josh5/steam-headless:2
 
-# 中文字体 + fcitx5 拼音（仅此一步需要联网）
+# 中文字体 + fcitx5 拼音 + Wine（仅此一步需要联网）
 RUN dnf install -y --skip-broken --setopt=install_weak_deps=False \
-      glibc-langpack-zh \
+      glibc-langpack-zh glibc-langpack-ja \
       google-noto-sans-cjk-ttc-fonts google-noto-serif-cjk-ttc-fonts \
+      ipa-gothic-fonts ipa-mincho-fonts \
       fcitx5 fcitx5-chinese-addons fcitx5-configtool fcitx5-gtk fcitx5-qt \
+      wine winetricks cabextract \
  && dnf clean all \
  && rm -rf /var/cache/dnf
 
 # 预置中文翻译与系统级默认配置
 COPY zh-locale/ /
 COPY files/ /
+
+# wine-ja 是 shell 脚本，git 不保留可执行位时要补
+RUN chmod 755 /usr/local/bin/wine-ja
 
 RUN set -eux; \
     n=$(find /usr/share/locale/zh_CN/LC_MESSAGES -name '*.mo' | wc -l); \
@@ -46,3 +51,12 @@ RUN set -eux; \
     test -L /etc/systemd/system/steam-headless-desktop.target.wants/fcitx5.service
 
 ENV LANG=zh_CN.UTF-8
+
+# 构建期自检：Wine 能跑、日文区域与日文字体齐、wine-ja 可执行
+RUN set -eux; \
+    wine --version; \
+    test -x /usr/local/bin/wine-ja; \
+    locale -a | grep -qi 'ja_JP.utf8'; \
+    n=$(fc-list :lang=ja | wc -l); \
+    echo "日文字体数量: $n"; \
+    test "$n" -gt 0
