@@ -1,0 +1,29 @@
+[Unit]
+Description=Fcitx5 中文输入法（随 Plasma 桌面启动）
+# 上游 2.x 镜像用 system 级 unit 拉桌面，不走 xdg-desktop-autostart.target，
+# 所以 /etc/xdg/autostart 里的条目不会被启动，这里改为同层级托管。
+After=steam-headless-compositor.service steam-headless-plasma.service steam-headless-session-bus.service
+PartOf=steam-headless-plasma.service
+StartLimitIntervalSec=0
+
+[Service]
+User=steamheadless
+Environment=LANG=zh_CN.UTF-8
+Environment=LC_ALL=zh_CN.UTF-8
+Environment=LANGUAGE=zh_CN
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=XDG_SESSION_TYPE=wayland
+Environment=XDG_CURRENT_DESKTOP=KDE
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+Environment=GTK_IM_MODULE=fcitx
+Environment=QT_IM_MODULE=fcitx
+Environment=XMODIFIERS=@im=fcitx
+Environment=SDL_IM_MODULE=fcitx
+Environment=HOME=/home/steamheadless
+ExecStart=/usr/sbin/fcitx5
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=steam-headless-desktop.target

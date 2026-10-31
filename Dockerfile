@@ -31,4 +31,18 @@ RUN set -eux; \
 # KDE 桌面会话从 /etc/locale.conf 取 locale，不改这里 plasma 会退回 C.UTF-8
 RUN printf 'LANG=zh_CN.UTF-8\nLANGUAGE=zh_CN\n' > /etc/locale.conf
 
+# 上游 2.x 用 system 级 unit 拉起桌面，不走 xdg-desktop-autostart.target，
+# 所以 fcitx5 必须挂在同一层级（见 files/etc/systemd/system/fcitx5.service）
+RUN mkdir -p /etc/systemd/system/steam-headless-desktop.target.wants \
+ && ln -sf /etc/systemd/system/fcitx5.service \
+      /etc/systemd/system/steam-headless-desktop.target.wants/fcitx5.service \
+ && systemctl enable fcitx5.service 2>/dev/null || true
+
+# 构建期自检：unit 存在、语法关键行齐全、已挂到 desktop.target
+RUN set -eux; \
+    test -f /etc/systemd/system/fcitx5.service; \
+    grep -q '^WantedBy=steam-headless-desktop.target$' /etc/systemd/system/fcitx5.service; \
+    grep -q '^ExecStart=/usr/sbin/fcitx5$' /etc/systemd/system/fcitx5.service; \
+    test -L /etc/systemd/system/steam-headless-desktop.target.wants/fcitx5.service
+
 ENV LANG=zh_CN.UTF-8
