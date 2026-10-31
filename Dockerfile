@@ -55,7 +55,6 @@ ENV LANG=zh_CN.UTF-8
 # 构建期自检：Wine 能跑、日文区域与日文字体齐、wine-ja 可执行
 RUN set -eux; \
     wine --version; \
-    test -x /usr/bin/wine; \
     test -x /usr/local/bin/wine-ja; \
     locale -a | grep -qi 'ja_JP.utf8'; \
     n=$(fc-list :lang=ja | wc -l); \
