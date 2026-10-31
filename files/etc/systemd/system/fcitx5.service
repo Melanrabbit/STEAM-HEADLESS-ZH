@@ -8,19 +8,26 @@ StartLimitIntervalSec=0
 
 [Service]
 User=steamheadless
+# 上游把会话级变量集中写在这个文件里（会话总线地址等），先整份读进来最稳。
+EnvironmentFile=-/run/steam-headless/environment
 Environment=LANG=zh_CN.UTF-8
 Environment=LC_ALL=zh_CN.UTF-8
 Environment=LANGUAGE=zh_CN
-Environment=XDG_RUNTIME_DIR=/run/user/%U
+# 坑：system 级 unit 里 %U 展开成 0（服务管理器的 uid），不是 User= 的 1001，
+# 于是 fcitx5 会去连 /run/user/0/bus 并报 Failed to connect to session dbus。这里写死 1001。
+Environment=XDG_RUNTIME_DIR=/run/user/1001
 Environment=WAYLAND_DISPLAY=wayland-0
 Environment=XDG_SESSION_TYPE=wayland
 Environment=XDG_CURRENT_DESKTOP=KDE
-Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus
 Environment=GTK_IM_MODULE=fcitx
 Environment=QT_IM_MODULE=fcitx
 Environment=XMODIFIERS=@im=fcitx
 Environment=SDL_IM_MODULE=fcitx
 Environment=HOME=/home/steamheadless
+# 会话总线可能刚 bind 完还没 accept，fcitx5 的 dbus 插件只尝试一次，失败就永久放弃。
+# 所以这里先确认 dbus 真能应答，再拉 fcitx5。
+ExecStartPre=/bin/sh -c 'if ! command -v dbus-send >/dev/null 2>&1; then sleep 5; exit 0; fi; i=0; while [ $i -lt 60 ]; do dbus-send --session --dest=org.freedesktop.DBus --type=method_call / org.freedesktop.DBus.ListNames >/dev/null 2>&1 && exit 0; i=$((i+1)); sleep 2; done; exit 0'
 ExecStart=/usr/sbin/fcitx5
 Restart=always
 RestartSec=3
