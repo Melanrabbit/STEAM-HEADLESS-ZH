@@ -13,7 +13,7 @@
 
 ## 构建
 
-推送到 `main` 分支后 GitHub Actions 自动构建并 push 到 Docker Hub：
+推送到 `main` 分支后 GitHub Actions 自动构建并 push 到 Docker Hub（只改 `*.md` 或 `docs/` 不会触发构建）：
 
 - `$DOCKERHUB_USERNAME/steam-headless-zh:latest`
 - `$DOCKERHUB_USERNAME/steam-headless-zh:<run_number>`
